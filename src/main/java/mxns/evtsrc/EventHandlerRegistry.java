@@ -1,8 +1,7 @@
 package mxns.evtsrc;
 
-import mxns.transport.AsyncExceptionHandler;
-import mxns.transport.AsyncHandler;
-import mxns.transport.Registry;
+import mxns.function.AsyncExceptionHandler;
+import mxns.function.AsyncFunction;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -25,7 +24,7 @@ public class EventHandlerRegistry<I, H, C> {
     }
 
     public void registerEventHandler(String address, Function<C, EventHandler<H>> handlerFactory) {
-        AsyncHandler<I, Void> handler = eventHandlers.createHandler(ctx -> m -> handlerFactory.apply(ctx).handle(m));
+        AsyncFunction<I, Void> handler = eventHandlers.createHandler(ctx -> m -> handlerFactory.apply(ctx).handle(m));
         registry.register(addressOf(address), handler);
     }
 

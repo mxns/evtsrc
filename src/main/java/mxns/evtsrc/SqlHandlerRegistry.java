@@ -2,10 +2,12 @@ package mxns.evtsrc;
 
 import com.englishtown.promises.Promise;
 import com.englishtown.promises.When;
-import mxns.transport.*;
+import mxns.function.AsyncExceptionHandler;
+import mxns.function.AsyncFunction;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class SqlHandlerRegistry<P, I, H, C, R> {
@@ -35,8 +37,8 @@ public class SqlHandlerRegistry<P, I, H, C, R> {
         this.queryHandlers = new QueryHandlerFactory<>(handlerFactory, poolManager);
     }
 
-    public void registerCommandHandler(String address, AsyncHandlerFactory<TxContext<P, C>, H, List<Event<R>>> handlerFactory) {
-        AsyncHandler<I, List<Event<R>>> handler = commandHandlers.createHandler(handlerFactory);
+    public void registerCommandHandler(String address, BiFunction<P, C, AsyncFunction<H, List<Event<R>>>> handlerFactory) {
+        AsyncFunction<I, List<Event<R>>> handler = commandHandlers.createHandler(handlerFactory);
         registry.register(addressOf(address), request -> handler.handle(request)
                 .then(events -> {
                     // publish events
@@ -44,8 +46,8 @@ public class SqlHandlerRegistry<P, I, H, C, R> {
                 }));
     }
 
-    public void registerQueryHandler(String address, Function<P, QueryHandler<H, R>> handlerFactory) {
-        AsyncHandler<I, R> handler = queryHandlers.createQueryHandler(handlerFactory);
+    public void registerQueryHandler(String address, Function<P, AsyncFunction<H, R>> handlerFactory) {
+        AsyncFunction<I, R> handler = queryHandlers.createQueryHandler(handlerFactory);
         registry.register(addressOf(address), handler);
     }
 

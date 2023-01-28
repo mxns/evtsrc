@@ -1,20 +1,12 @@
-package mxns.transport;
+package mxns.evtsrc;
 
 import com.englishtown.promises.Promise;
+import mxns.function.AsyncExceptionHandler;
+import mxns.function.AsyncFunction;
 
 import java.util.Objects;
 import java.util.function.Function;
 
-/**
- * Create an outer handler function around a handler factory, so that each call to the
- * outer handler produces a new inner handler. The inner handler is given access to a
- * contextualized async event bus and a contextualized logger, as well as the message payload.
- *
- * @param <I> Type handled by outer handler
- * @param <H> Type handled by inner handler
- * @param <C> Type of context
- * @param <R> Type produced by inner handler
- */
 public class HandlerFactory<I, H, C, R> {
     private final Function<I, C> contextFactory;
     private final Function<I, H> payloadExtractor;
@@ -30,11 +22,11 @@ public class HandlerFactory<I, H, C, R> {
         this.exceptionHandler = exceptionHandler;
     }
 
-    public AsyncHandler<I, R> createHandler(AsyncHandlerFactory<C, H, R> handlerFactory) {
+    public AsyncFunction<I, R> createHandler(Function<C, AsyncFunction<H, R>> handlerFactory) {
         return message -> {
             C context = contextFactory.apply(message);
             H payload = payloadExtractor.apply(message);
-            AsyncHandler<H, R> payloadHandler = handlerFactory.get(context);
+            AsyncFunction<H, R> payloadHandler = handlerFactory.apply(context);
             Promise<R> promise;
             try {
                 promise = payloadHandler.handle(payload);

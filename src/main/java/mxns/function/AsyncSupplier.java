@@ -1,4 +1,4 @@
-package mxns.transport;
+package mxns.function;
 
 import com.englishtown.promises.Promise;
 

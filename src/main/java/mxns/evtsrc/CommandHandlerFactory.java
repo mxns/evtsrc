@@ -1,10 +1,11 @@
 package mxns.evtsrc;
 
 import com.englishtown.promises.Promise;
-import mxns.transport.*;
+import mxns.function.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 abstract class CommandHandlerFactory<P, I, H, C, R> {
@@ -25,12 +26,12 @@ abstract class CommandHandlerFactory<P, I, H, C, R> {
         this.exceptionHandler = exceptionHandler;
     }
 
-    public AsyncHandler<I, List<Event<R>>> createHandler(AsyncHandlerFactory<TxContext<P, C>, H, List<Event<R>>> handlerFactory) {
+    public AsyncFunction<I, List<Event<R>>> createHandler(BiFunction<P, C, AsyncFunction<H, List<Event<R>>>> handlerFactory) {
         return message -> {
-            AsyncHandler<P, List<Event<R>>> handler = connection -> {
+            AsyncFunction<P, List<Event<R>>> handler = connection -> {
                 C context = contextFactory.apply(message);
                 H payload = payloadExtractor.apply(message);
-                AsyncHandler<H, List<Event<R>>> payloadHandler = handlerFactory.get(new TxContext<>(connection, context));
+                AsyncFunction<H, List<Event<R>>> payloadHandler = handlerFactory.apply(connection, context);
                 Promise<List<Event<R>>> handleCommand;
                 try {
                     handleCommand = payloadHandler.handle(payload);

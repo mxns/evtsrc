@@ -1,8 +1,8 @@
-package mxns.transport;
+package mxns.function;
 
 import com.englishtown.promises.Promise;
 
 @FunctionalInterface
-public interface AsyncHandler<H, R> {
+public interface AsyncFunction<H, R> {
     Promise<R> handle(H request);
 }
