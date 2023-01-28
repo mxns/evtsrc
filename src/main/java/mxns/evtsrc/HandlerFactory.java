@@ -27,25 +27,25 @@ public class HandlerFactory<I, H, C, R> {
             C context = contextFactory.apply(message);
             H payload = payloadExtractor.apply(message);
             AsyncFunction<H, R> payloadHandler = handlerFactory.apply(context);
-            Promise<R> promise;
+            Promise<R> handleCommand;
             try {
-                promise = payloadHandler.handle(payload);
+                handleCommand = payloadHandler.handle(payload);
             } catch (Throwable error) {
                 return exceptionHandler
                         .handle(context, payload, error)
                         .then(v -> {
-                            throw new IgnoreableException(error);
+                            throw new IgnorableException(error);
                         });
             }
-            if (Objects.isNull(promise)) {
+            if (Objects.isNull(handleCommand)) {
                 return null;
             }
-            return promise
+            return handleCommand
                     .otherwise(error -> {
                         return exceptionHandler
                                 .handle(context, payload, error)
                                 .then(v -> {
-                                    throw new IgnoreableException(error);
+                                    throw new IgnorableException(error);
                                 });
                     });
         };

@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-abstract class CommandHandlerFactory<P, I, H, C, R> {
+public class CommandHandlerFactory<P, I, H, C, R> {
     private final ConnectionManager<P> poolManager;
     private final Function<I, C> contextFactory;
     private final Function<I, H> payloadExtractor;
@@ -39,25 +39,22 @@ abstract class CommandHandlerFactory<P, I, H, C, R> {
                     return exceptionHandler
                             .handle(context, payload, error)
                             .then(v -> {
-                                throw new IgnoreableException(error);
+                                throw new IgnorableException(error);
                             });
                 }
                 if (Objects.isNull(handleCommand)) {
                     return null;
                 }
                 return handleCommand
-                        .then(events -> insertEvents(connection, events))
                         .otherwise(error -> {
                             return exceptionHandler
                                     .handle(context, payload, error)
                                     .then(v -> {
-                                        throw new IgnoreableException(error);
+                                        throw new IgnorableException(error);
                                     });
                         });
             };
             return poolManager.withTransaction(handler);
         };
     }
-
-    abstract Promise<List<Event<R>>> insertEvents(P connection, List<Event<R>> events);
 }

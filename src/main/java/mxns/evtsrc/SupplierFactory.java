@@ -21,7 +21,7 @@ public class SupplierFactory<I, C, R> {
         this.exceptionHandler = exceptionHandler;
     }
 
-    public AsyncFunction<I, R> createSupplier(AsyncSupplierFactory<C, R> handlerFactory) {
+    public AsyncFunction<I, R> createHandler(AsyncSupplierFactory<C, R> handlerFactory) {
         return message -> {
             C context = contextFactory.apply(message);
             AsyncSupplier<R> payloadHandler = handlerFactory.get(context);
@@ -32,7 +32,7 @@ public class SupplierFactory<I, C, R> {
                 return exceptionHandler
                         .apply(context, error)
                         .then(v -> {
-                            throw new IgnoreableException(error);
+                            throw new IgnorableException(error);
                         });
             }
             if (Objects.isNull(promise)) {
@@ -43,7 +43,7 @@ public class SupplierFactory<I, C, R> {
                         return exceptionHandler
                                 .apply(context, error)
                                 .then(v -> {
-                                    throw new IgnoreableException(error);
+                                    throw new IgnorableException(error);
                                 });
                     });
         };

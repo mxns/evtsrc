@@ -2,6 +2,7 @@ package mxns.evtsrc;
 
 import mxns.function.AsyncFunction;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 class QueryHandlerFactory<P, I, H, C, R> {
@@ -16,12 +17,12 @@ class QueryHandlerFactory<P, I, H, C, R> {
         this.poolManager = poolManager;
     }
 
-    AsyncFunction<I, R> createQueryHandler(Function<P, AsyncFunction<H, R>> handlerFactory) {
+    AsyncFunction<I, R> createHandler(BiFunction<P, C, AsyncFunction<H, R>> handlerFactory) {
         return this.handlerFactory.createHandler(
                 ctx -> query ->
                         poolManager.withConnection(
                                 connection -> {
-                                    AsyncFunction<H, R> handler = handlerFactory.apply(connection);
+                                    AsyncFunction<H, R> handler = handlerFactory.apply(connection, ctx);
                                     return handler.handle(query);
                                 })
         );
