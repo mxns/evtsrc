@@ -1,28 +1,28 @@
 package mxns.evtsrc;
 
 import com.englishtown.promises.Promise;
-import mxns.function.AsyncFunction;
 import mxns.function.AsyncSupplier;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-public class SupplierFactory<I, C, R> {
-    private final Function<I, C> contextFactory;
+public class SupplierFactory<C, R> {
+    private final Supplier<C> contextFactory;
     private final BiFunction<C, Throwable, Promise<Void>> exceptionHandler;
 
     public SupplierFactory(
-            Function<I, C> contextFactory,
+            Supplier<C> contextFactory,
             BiFunction<C, Throwable, Promise<Void>> exceptionHandler
     ) {
         this.contextFactory = contextFactory;
         this.exceptionHandler = exceptionHandler;
     }
 
-    public AsyncFunction<I, R> createHandler(Function<C, AsyncSupplier<R>> handlerFactory) {
-        return message -> {
-            C context = contextFactory.apply(message);
+    public AsyncSupplier<R> createHandler(Function<C, AsyncSupplier<R>> handlerFactory) {
+        return () -> {
+            C context = contextFactory.get();
             AsyncSupplier<R> supplier = handlerFactory.apply(context);
             Promise<R> promise;
             try {

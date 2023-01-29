@@ -24,16 +24,13 @@ public abstract class SqlHandlerRegistry<P, I, H, C, R> {
 
     public AsyncFunction<I, Void> createCommandHandler(BiFunction<P, C, AsyncFunction<H, List<Event<R>>>> handlerFactory) {
         AsyncFunction<I, List<Event<R>>> handler = commandHandlers.createHandler(
-                (connection, context) -> message ->
+                (connection, context) -> payload ->
                         handlerFactory
                                 .apply(connection, context)
-                                .handle(message)
+                                .handle(payload)
                                 .then(events -> insertEvents(connection, events))
         );
         return message -> handler.handle(message)
-                .then(events -> {
-                    List<Envelope<R>> envelopes = multiplexer.mapToChannels(events);
-                    return publishEvents(envelopes);
-                });
+                .then(events -> publishEvents(multiplexer.mapToChannels(events)));
     }
 }

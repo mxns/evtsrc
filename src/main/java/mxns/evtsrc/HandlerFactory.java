@@ -8,23 +8,23 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class HandlerFactory<I, H, C, R> {
-    private final Function<I, C> contextFactory;
+    private final Function<I, C> contextExtractor;
     private final Function<I, H> payloadExtractor;
     private final AsyncExceptionHandler<C, H> exceptionHandler;
 
     public HandlerFactory(
-            Function<I, C> contextFactory,
+            Function<I, C> contextExtractor,
             Function<I, H> payloadExtractor,
             AsyncExceptionHandler<C, H> exceptionHandler
     ) {
-        this.contextFactory = contextFactory;
+        this.contextExtractor = contextExtractor;
         this.payloadExtractor = payloadExtractor;
         this.exceptionHandler = exceptionHandler;
     }
 
     public AsyncFunction<I, R> createHandler(Function<C, AsyncFunction<H, R>> handlerFactory) {
         return message -> {
-            C context = contextFactory.apply(message);
+            C context = contextExtractor.apply(message);
             H payload = payloadExtractor.apply(message);
             AsyncFunction<H, R> payloadHandler = handlerFactory.apply(context);
             Promise<R> handleCommand;
