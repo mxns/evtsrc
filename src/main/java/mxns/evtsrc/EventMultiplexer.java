@@ -13,13 +13,13 @@ public class EventMultiplexer<E> {
         eventTypes.forEach(eventType -> this.channels.computeIfAbsent(eventType, k -> new ArrayList<>()).add(channel));
     }
 
-    public List<Envelope> mapToChannels(List<Event<E>> events) {
+    public List<Envelope<E>> mapToChannels(List<Event<E>> events) {
         return events
                 .stream()
                 .flatMap(event ->
                         channels.getOrDefault(event.type(), Collections.emptyList())
                                 .stream()
-                                .map(channel -> new Envelope(channel.channelAddress, event, channel.sequenceNumber.incrementAndGet()))
+                                .map(channel -> new Envelope<>(channel.channelAddress, event, channel.sequenceNumber.incrementAndGet()))
                 )
                 .collect(Collectors.toList());
     }
@@ -31,18 +31,6 @@ public class EventMultiplexer<E> {
         private Channel(String channelAddress, long sequenceNumber) {
             this.channelAddress = channelAddress;
             this.sequenceNumber = new AtomicLong(sequenceNumber);
-        }
-    }
-
-    public class Envelope {
-        public final String address;
-        public final Event<E> envelope;
-        public final long sequenceNumber;
-
-        public Envelope(String address, Event<E> envelope, long sequenceNumber) {
-            this.address = address;
-            this.envelope = envelope;
-            this.sequenceNumber = sequenceNumber;
         }
     }
 }

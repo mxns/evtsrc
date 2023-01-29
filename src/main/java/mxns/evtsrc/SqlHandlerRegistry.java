@@ -4,27 +4,25 @@ import com.englishtown.promises.Promise;
 import mxns.function.AsyncFunction;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BiFunction;
 
 public abstract class SqlHandlerRegistry<P, I, H, C, R> {
     private final CommandHandlerFactory<P, I, H, C, R> commandHandlers;
-    private final String namespace;
+    private final EventMultiplexer<R> multiplexer;
 
     public SqlHandlerRegistry(
-            String namespace,
-            ConnectionManager<P> poolManager,
-            HandlerFactory<I, H, C, List<Event<R>>> handlerFactory
+            CommandHandlerFactory<P, I, H, C, R> commandHandlers,
+            EventMultiplexer<R> multiplexer
     ) {
-        this.namespace = namespace;
-        this.commandHandlers = new CommandHandlerFactory<>(handlerFactory, poolManager);
+        this.commandHandlers = commandHandlers;
+        this.multiplexer = multiplexer;
     }
 
     abstract Promise<List<Event<R>>> insertEvents(P connection, List<Event<R>> events);
 
-    abstract void registerHandler(String address, AsyncFunction<I, Event<R>> handler);
+    abstract Promise<Void> publishEvents(List<Envelope<R>> envelopes);
 
-    public void registerCommandHandler(String address, BiFunction<P, C, AsyncFunction<H, List<Event<R>>>> handlerFactory) {
+    public AsyncFunction<I, Void> createCommandHandler(BiFunction<P, C, AsyncFunction<H, List<Event<R>>>> handlerFactory) {
         AsyncFunction<I, List<Event<R>>> handler = commandHandlers.createHandler(
                 (connection, context) -> message ->
                         handlerFactory
@@ -32,19 +30,10 @@ public abstract class SqlHandlerRegistry<P, I, H, C, R> {
                                 .handle(message)
                                 .then(events -> insertEvents(connection, events))
         );
-        registerHandler(addressOf(address), request ->
-                handler.handle(request)
-                        .then(events -> {
-                            // publish events
-                            return null;
-                        })
-        );
-    }
-
-    private String addressOf(String address) {
-        if (Objects.isNull(namespace) || namespace.isBlank()) {
-            return address;
-        }
-        return namespace + "." + address;
+        return message -> handler.handle(message)
+                .then(events -> {
+                    List<Envelope<R>> envelopes = multiplexer.mapToChannels(events);
+                    return publishEvents(envelopes);
+                });
     }
 }
