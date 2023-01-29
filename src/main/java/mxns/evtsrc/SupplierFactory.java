@@ -3,7 +3,6 @@ package mxns.evtsrc;
 import com.englishtown.promises.Promise;
 import mxns.function.AsyncFunction;
 import mxns.function.AsyncSupplier;
-import mxns.function.AsyncSupplierFactory;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -21,13 +20,13 @@ public class SupplierFactory<I, C, R> {
         this.exceptionHandler = exceptionHandler;
     }
 
-    public AsyncFunction<I, R> createHandler(AsyncSupplierFactory<C, R> handlerFactory) {
+    public AsyncFunction<I, R> createHandler(Function<C, AsyncSupplier<R>> handlerFactory) {
         return message -> {
             C context = contextFactory.apply(message);
-            AsyncSupplier<R> payloadHandler = handlerFactory.get(context);
+            AsyncSupplier<R> supplier = handlerFactory.apply(context);
             Promise<R> promise;
             try {
-                promise = payloadHandler.get();
+                promise = supplier.get();
             } catch (Throwable error) {
                 return exceptionHandler
                         .apply(context, error)

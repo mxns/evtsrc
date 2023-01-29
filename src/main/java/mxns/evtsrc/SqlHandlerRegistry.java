@@ -1,30 +1,23 @@
 package mxns.evtsrc;
 
 import com.englishtown.promises.Promise;
-import mxns.function.AsyncExceptionHandler;
 import mxns.function.AsyncFunction;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public abstract class SqlHandlerRegistry<P, I, H, C, R> {
     private final CommandHandlerFactory<P, I, H, C, R> commandHandlers;
-    private final QueryHandlerFactory<P, I, H, C, R> queryHandlers;
     private final String namespace;
 
     public SqlHandlerRegistry(
             String namespace,
             ConnectionManager<P> poolManager,
-            HandlerFactory<I, H, C, R> handlerFactory,
-            Function<I, C> contextFactory,
-            Function<I, H> payloadExtractor,
-            AsyncExceptionHandler<C, H> exceptionHandler
+            HandlerFactory<I, H, C, List<Event<R>>> handlerFactory
     ) {
         this.namespace = namespace;
-        this.commandHandlers = new CommandHandlerFactory<>(contextFactory, payloadExtractor, exceptionHandler, poolManager);
-        this.queryHandlers = new QueryHandlerFactory<>(handlerFactory, poolManager);
+        this.commandHandlers = new CommandHandlerFactory<>(handlerFactory, poolManager);
     }
 
     abstract Promise<List<Event<R>>> insertEvents(P connection, List<Event<R>> events);
