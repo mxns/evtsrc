@@ -5,12 +5,12 @@ import mxns.function.AsyncFunction;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public class CommandHandlerFactory<P, I, H, C, R> {
+public class CommandHandlerFactory<P, I, C, H, R> {
     private final ConnectionPool<P> connectionPool;
-    private final HandlerFactory<I, H, C, List<Event<R>>> handlerFactory;
+    private final HandlerFactory<I, C, H, List<Event<R>>> handlerFactory;
 
     protected CommandHandlerFactory(
-            HandlerFactory<I, H, C, List<Event<R>>> handlerFactory,
+            HandlerFactory<I, C, H, List<Event<R>>> handlerFactory,
             ConnectionPool<P> connectionPool
     ) {
         this.handlerFactory = handlerFactory;

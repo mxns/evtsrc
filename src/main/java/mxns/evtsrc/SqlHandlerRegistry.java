@@ -6,12 +6,12 @@ import mxns.function.AsyncFunction;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public abstract class SqlHandlerRegistry<P, I, H, C, R> {
-    private final CommandHandlerFactory<P, I, H, C, R> commandHandlers;
+public abstract class SqlHandlerRegistry<P, I, C, H, R> {
+    private final CommandHandlerFactory<P, I, C, H, R> commandHandlers;
     private final EventMultiplexer<R> multiplexer;
 
     public SqlHandlerRegistry(
-            CommandHandlerFactory<P, I, H, C, R> commandHandlers,
+            CommandHandlerFactory<P, I, C, H, R> commandHandlers,
             EventMultiplexer<R> multiplexer
     ) {
         this.commandHandlers = commandHandlers;

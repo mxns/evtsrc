@@ -7,7 +7,7 @@ import mxns.function.AsyncFunction;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class HandlerFactory<I, H, C, R> {
+public class HandlerFactory<I, C, H, R> {
     private final Function<I, C> contextExtractor;
     private final Function<I, H> payloadExtractor;
     private final AsyncExceptionHandler<C, H> exceptionHandler;

@@ -4,12 +4,12 @@ import mxns.function.AsyncFunction;
 
 import java.util.function.BiFunction;
 
-class QueryHandlerFactory<P, I, H, C, R> {
+class QueryHandlerFactory<P, I, C, H, R> {
     private final ConnectionPool<P> connectionPool;
-    private final HandlerFactory<I, H, C, R> handlerFactory;
+    private final HandlerFactory<I, C, H, R> handlerFactory;
 
     QueryHandlerFactory(
-            HandlerFactory<I, H, C, R> handlerFactory,
+            HandlerFactory<I, C, H, R> handlerFactory,
             ConnectionPool<P> connectionPool
     ) {
         this.handlerFactory = handlerFactory;
