@@ -1,7 +1,6 @@
 package mxns.evtsrc;
 
 import com.englishtown.promises.Promise;
-import mxns.function.AsyncExceptionHandler;
 import mxns.function.AsyncFunction;
 
 import java.util.Objects;

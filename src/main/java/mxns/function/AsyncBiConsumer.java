@@ -3,6 +3,6 @@ package mxns.function;
 import com.englishtown.promises.Promise;
 
 @FunctionalInterface
-public interface AsyncFunction<T, R> {
-    Promise<R> handle(T request);
+public interface AsyncBiConsumer<T, U> {
+    Promise<Void> accept(T t, U u);
 }
