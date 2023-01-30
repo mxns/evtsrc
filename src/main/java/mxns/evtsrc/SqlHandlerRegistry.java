@@ -27,10 +27,10 @@ public abstract class SqlHandlerRegistry<P, I, C, H, R> {
                 (connection, context) -> payload ->
                         handlerFactory
                                 .apply(connection, context)
-                                .handle(payload)
+                                .apply(payload)
                                 .then(events -> insertEvents(connection, events))
         );
-        return message -> handler.handle(message)
+        return message -> handler.apply(message)
                 .then(events -> publishEvents(multiplexer.mapToChannels(events)));
     }
 }

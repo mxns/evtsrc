@@ -19,7 +19,7 @@ class QueryHandlerFactory<P, I, C, H, R> {
     AsyncFunction<I, R> createHandler(BiFunction<P, C, AsyncFunction<H, R>> handlerFactory) {
         return this.handlerFactory.createHandler(context -> message ->
                 connectionPool.withConnection(
-                        connection -> handlerFactory.apply(connection, context).handle(message))
+                        connection -> handlerFactory.apply(connection, context).apply(message))
         );
     }
 }

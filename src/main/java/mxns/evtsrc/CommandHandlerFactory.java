@@ -20,7 +20,7 @@ public class CommandHandlerFactory<P, I, C, H, R> {
     public AsyncFunction<I, List<Event<R>>> createHandler(BiFunction<P, C, AsyncFunction<H, List<Event<R>>>> handlerFactory) {
         return this.handlerFactory.createHandler(context -> message ->
                 connectionPool.withTransaction(
-                        connection -> handlerFactory.apply(connection, context).handle(message)
+                        connection -> handlerFactory.apply(connection, context).apply(message)
                 ));
     }
 }

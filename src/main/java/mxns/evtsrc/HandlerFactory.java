@@ -28,7 +28,7 @@ public class HandlerFactory<I, C, H, R> {
             AsyncFunction<H, R> payloadHandler = handlerFactory.apply(context);
             Promise<R> handleCommand;
             try {
-                handleCommand = payloadHandler.handle(payload);
+                handleCommand = payloadHandler.apply(payload);
             } catch (Throwable error) {
                 return exceptionHandler
                         .handle(context, payload, error)
