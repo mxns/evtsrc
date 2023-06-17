@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-public class EventMultiplexer<E> {
+public class EventMultiplexer<O> {
 
     private final Map<Integer, List<Channel>> channels = new HashMap<>();
 
@@ -13,7 +13,7 @@ public class EventMultiplexer<E> {
         eventTypes.forEach(eventType -> this.channels.computeIfAbsent(eventType, k -> new ArrayList<>()).add(channel));
     }
 
-    public List<Envelope<E>> mapToChannels(List<Event<E>> events) {
+    public List<Envelope<O>> mapToChannels(List<Event<O>> events) {
         return events
                 .stream()
                 .flatMap(event ->
