@@ -1,59 +1,47 @@
 package mxns.evtsrc;
 
-import com.englishtown.promises.Promise;
-import mxns.function.AsyncFunction;
-
-import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
- *
  * @param <I> Input
- * @param <X> Context
- * @param <P> Parameters
+ * @param <C> Context
  * @param <O> Output
  */
-public class HandlerFactory<I, X, P, O> {
-    private final Function<I, X> contextExtractor;
-    private final Function<I, P> parameterExtractor;
-    private final AsyncExceptionHandler<X, P> exceptionHandler;
+public class HandlerFactory<I, C, O> {
+    private final Function<I, CompletableFuture<C>> contextCreator;
+    private final BiFunction<C, Throwable, CompletableFuture<O>> exceptionHandler;
 
     public HandlerFactory(
-            Function<I, X> contextExtractor,
-            Function<I, P> parameterExtractor,
-            AsyncExceptionHandler<X, P> exceptionHandler
+            Function<I, CompletableFuture<C>> contextCreator,
+            BiFunction<C, Throwable, CompletableFuture<O>> exceptionHandler
     ) {
-        this.contextExtractor = contextExtractor;
-        this.parameterExtractor = parameterExtractor;
+        this.contextCreator = contextCreator;
         this.exceptionHandler = exceptionHandler;
     }
 
-    public AsyncFunction<I, O> createHandler(Function<X, AsyncFunction<P, O>> factory) {
-        return input -> {
-            X context = contextExtractor.apply(input);
-            P parameters = parameterExtractor.apply(input);
-            AsyncFunction<P, O> function = factory.apply(context);
-            Promise<O> promise;
-            try {
-                promise = function.apply(parameters);
-            } catch (Throwable error) {
-                return exceptionHandler
-                        .handle(context, parameters, error)
-                        .then(v -> {
-                            throw new IgnorableException(error);
-                        });
-            }
-            if (Objects.isNull(promise)) {
-                return null;
-            }
-            return promise
-                    .otherwise(error -> {
-                        return exceptionHandler
-                                .handle(context, parameters, error)
-                                .then(v -> {
-                                    throw new IgnorableException(error);
-                                });
-                    });
-        };
+    public Function<I, CompletableFuture<O>> createHandler(Function<C, Supplier<CompletableFuture<O>>> handlerFactory) {
+        return input -> contextCreator.apply(input).thenCompose(context -> apply(handlerFactory, context));
+    }
+
+    private CompletableFuture<O> apply(Function<C, Supplier<CompletableFuture<O>>> handlerFactory, C context) {
+        CompletableFuture<O> future;
+        try {
+            future = handlerFactory.apply(context).get();
+        } catch (Exception e) {
+            return handleException(context, e);
+        }
+        return future.exceptionallyCompose(throwable -> handleException(context, throwable));
+    }
+
+    private CompletableFuture<O> handleException(C context, Throwable throwable) {
+        try {
+            return exceptionHandler.apply(context, throwable)
+                    .thenCompose(output -> CompletableFuture.failedFuture(new IgnorableException(throwable)));
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 }
