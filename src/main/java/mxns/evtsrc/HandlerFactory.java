@@ -11,11 +11,11 @@ import java.util.function.Supplier;
  * @param <O> Output
  */
 public class HandlerFactory<I, C, O> {
-    private final Function<I, CompletableFuture<C>> contextCreator;
+    private final BiFunction<I, Function<C, CompletableFuture<O>>, CompletableFuture<O>> contextCreator;
     private final BiFunction<C, Throwable, CompletableFuture<O>> exceptionHandler;
 
     public HandlerFactory(
-            Function<I, CompletableFuture<C>> contextCreator,
+            BiFunction<I, Function<C, CompletableFuture<O>>, CompletableFuture<O>> contextCreator,
             BiFunction<C, Throwable, CompletableFuture<O>> exceptionHandler
     ) {
         this.contextCreator = contextCreator;
@@ -23,7 +23,7 @@ public class HandlerFactory<I, C, O> {
     }
 
     public Function<I, CompletableFuture<O>> createHandler(Function<C, Supplier<CompletableFuture<O>>> handlerFactory) {
-        return input -> contextCreator.apply(input).thenCompose(context -> apply(handlerFactory, context));
+        return input -> contextCreator.apply(input, context -> apply(handlerFactory, context));
     }
 
     private CompletableFuture<O> apply(Function<C, Supplier<CompletableFuture<O>>> handlerFactory, C context) {
