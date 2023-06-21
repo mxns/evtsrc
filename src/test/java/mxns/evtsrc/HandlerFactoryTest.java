@@ -14,14 +14,14 @@ import java.util.function.Supplier;
 public class HandlerFactoryTest {
     @Test
     public void shouldCompleteSuccessfully() throws ExecutionException, InterruptedException {
-        BiFunction<Map<String, String>, Function<Context, CompletableFuture<String>>, CompletableFuture<String>> contextCreator = (data, f) -> f.apply(new Context(data.get("apa")));
-        BiFunction<Context, Throwable, CompletableFuture<String>> exceptionHandler = (context, throwable) -> {
+        BiFunction<Map<String, String>, Function<ContextForTesting, CompletableFuture<String>>, CompletableFuture<String>> contextCreator = (data, f) -> f.apply(new ContextForTesting(data.get("apa")));
+        BiFunction<ContextForTesting, Throwable, CompletableFuture<String>> exceptionHandler = (context, throwable) -> {
             System.out.println("I got this: " + throwable.getMessage());
             return CompletableFuture.completedFuture("handled exception");
         };
         Executor executor = Runnable::run;
-        HandlerFactory<Map<String, String>, Context, String, String> factory = new HandlerFactory<>(contextCreator, CompletableFuture::completedFuture, exceptionHandler, executor);
-        Function<Context, Supplier<CompletableFuture<String>>> function = context -> () -> CompletableFuture.completedFuture(context.value);
+        HandlerFactory<Map<String, String>, ContextForTesting, String, String> factory = new HandlerFactory<>(contextCreator, CompletableFuture::completedFuture, exceptionHandler, executor);
+        Function<ContextForTesting, Supplier<CompletableFuture<String>>> function = context -> () -> CompletableFuture.completedFuture(context.value);
         Function<Map<String, String>, CompletableFuture<String>> handler = factory.createHandler(function);
         CompletableFuture<String> apply = handler.apply(Map.of("apa", "giraff"));
         Assert.assertEquals("giraff", apply.get());
@@ -29,14 +29,14 @@ public class HandlerFactoryTest {
 
     @Test(expected = IgnorableException.class)
     public void shouldFail() throws Throwable {
-        BiFunction<Map<String, String>, Function<Context, CompletableFuture<String>>, CompletableFuture<String>> contextCreator = (data, f) -> f.apply(new Context(data.get("apa")));
-        BiFunction<Context, Throwable, CompletableFuture<String>> exceptionHandler = (context, throwable) -> {
+        BiFunction<Map<String, String>, Function<ContextForTesting, CompletableFuture<String>>, CompletableFuture<String>> contextCreator = (data, f) -> f.apply(new ContextForTesting(data.get("apa")));
+        BiFunction<ContextForTesting, Throwable, CompletableFuture<String>> exceptionHandler = (context, throwable) -> {
             System.out.println("I got this: " + throwable.getMessage());
             return CompletableFuture.completedFuture("handled exception");
         };
         Executor executor = Runnable::run;
-        HandlerFactory<Map<String, String>, Context, String, String> factory = new HandlerFactory<>(contextCreator, CompletableFuture::completedFuture, exceptionHandler, executor);
-        Function<Context, Supplier<CompletableFuture<String>>> function = context -> () -> {
+        HandlerFactory<Map<String, String>, ContextForTesting, String, String> factory = new HandlerFactory<>(contextCreator, CompletableFuture::completedFuture, exceptionHandler, executor);
+        Function<ContextForTesting, Supplier<CompletableFuture<String>>> function = context -> () -> {
             throw new RuntimeException("Failure");
         };
         Function<Map<String, String>, CompletableFuture<String>> handler = factory.createHandler(function);
@@ -48,10 +48,10 @@ public class HandlerFactoryTest {
         }
     }
 
-    static class Context {
+    static class ContextForTesting {
         final String value;
 
-        Context(String value) {
+        ContextForTesting(String value) {
             this.value = value;
         }
     }
